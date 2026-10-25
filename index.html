@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex">
+<title>Punto de Quiebre</title>
+<style>
+  :root {
+    --negro: #000;
+    --blanco: #fff;
+    --gris: #6b6b6b;
+    --linea: #d9d9d9;
+    --suave: #f4f4f4;
+    --radio: 14px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--blanco);
+    color: var(--negro);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.4;
+    -webkit-text-size-adjust: 100%;
+  }
+  header {
+    background: var(--negro);
+    color: var(--blanco);
+    padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+  }
+  header p { margin: 2px 0 0; font-size: 14px; color: #bdbdbd; }
+  main {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 16px 16px calc(32px + env(safe-area-inset-bottom));
+  }
+  label { display: block; font-size: 14px; font-weight: 600; margin: 0 0 6px; }
+  .campo { margin-bottom: 12px; }
+  input[type="text"], input[type="search"] {
+    width: 100%;
+    font: inherit;
+    font-size: 18px;
+    padding: 14px;
+    border: 2px solid var(--negro);
+    border-radius: var(--radio);
+    background: var(--blanco);
+    color: var(--negro);
+    appearance: none;
+  }
+  input.secundario { border-width: 1px; border-color: var(--linea); font-size: 16px; }
+  input:focus { outline: 3px solid var(--negro); outline-offset: 2px; }
+  button, .boton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 56px;
+    font: inherit;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: var(--radio);
+    border: 2px solid var(--negro);
+    background: var(--negro);
+    color: var(--blanco);
+    cursor: pointer;
+    text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:active, .boton:active { transform: scale(.985); }
+  button[disabled] { opacity: .5; cursor: default; }
+  .claro { background: var(--blanco); color: var(--negro); }
+  .fila { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .fila .boton, .fila button { min-height: 50px; font-size: 16px; }
+  .aviso {
+    margin: 16px 0 0;
+    padding: 14px;
+    border-radius: var(--radio);
+    background: var(--suave);
+    border-left: 4px solid var(--negro);
+    font-size: 16px;
+  }
+  .aviso strong { display: block; margin-bottom: 2px; }
+  .titulo-seccion {
+    margin: 22px 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--gris);
+  }
+  ul.resultados { list-style: none; margin: 0; padding: 0; }
+  ul.resultados li + li { margin-top: 8px; }
+  .resultado {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    text-align: left;
+    padding: 14px 16px;
+    background: var(--blanco);
+    color: var(--negro);
+    border: 1px solid var(--linea);
+    font-weight: 400;
+  }
+  .resultado:hover, .resultado:focus-visible { border-color: var(--negro); }
+  .resultado .nombre { display: block; font-weight: 700; font-size: 17px; }
+  .resultado .direccion { display: block; color: var(--gris); font-size: 15px; margin-top: 2px; }
+  .atribucion { margin-top: 10px; font-size: 12px; color: var(--gris); text-align: right; font-family: Roboto, Arial, sans-serif; }
+  .tarjeta {
+    margin-top: 20px;
+    border: 2px solid var(--negro);
+    border-radius: var(--radio);
+    padding: 16px;
+  }
+  .tarjeta .nombre { font-size: 20px; font-weight: 800; margin: 0; }
+  .tarjeta .direccion { color: var(--gris); margin: 4px 0 14px; font-size: 15px; }
+  .enlace {
+    width: 100%;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 14px;
+    padding: 12px;
+    border: 1px solid var(--linea);
+    border-radius: 10px;
+    background: var(--suave);
+    color: var(--negro);
+    resize: none;
+    word-break: break-all;
+  }
+  .estado-copia { min-height: 22px; margin: 8px 0 0; font-size: 15px; font-weight: 600; text-align: center; }
+  .nueva { margin-top: 18px; }
+  .cargando { display: inline-block; width: 18px; height: 18px; border: 3px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: giro .7s linear infinite; }
+  @keyframes giro { to { transform: rotate(360deg); } }
+  [hidden] { display: none !important; }
+  .solo-lector { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Punto de Quiebre</h1>
+  <p>Enlace de reseña de Google en segundos</p>
+</header>
+
+<main>
+  <form id="formulario" autocomplete="off" novalidate>
+    <div class="campo">
+      <label for="negocio">Nombre del negocio</label>
+      <input id="negocio" type="search" enterkeyhint="search" placeholder="Ej.: Lomitería Don Vito" required>
+    </div>
+    <div class="campo">
+      <label for="zona">Ciudad o zona <span style="font-weight:400;color:var(--gris)">(opcional)</span></label>
+      <input id="zona" class="secundario" type="text" enterkeyhint="search" placeholder="Ej.: Asunción, Villa Morra, Encarnación">
+    </div>
+    <button id="buscar" type="submit">Buscar</button>
+  </form>
+
+  <div id="aviso" class="aviso" role="alert" hidden></div>
+
+  <section id="seccion-resultados" hidden>
+    <h2 class="titulo-seccion" id="titulo-resultados">Elegí el negocio correcto</h2>
+    <ul id="resultados" class="resultados" aria-labelledby="titulo-resultados"></ul>
+    <div class="atribucion">Resultados de Google Maps</div>
+  </section>
+
+  <section id="seccion-enlace" hidden>
+    <div class="tarjeta">
+      <p class="nombre" id="sel-nombre"></p>
+      <p class="direccion" id="sel-direccion"></p>
+      <label for="enlace">Enlace para dejar una reseña</label>
+      <textarea id="enlace" class="enlace" rows="3" readonly></textarea>
+      <button id="copiar" type="button" style="margin-top:12px">Copiar enlace</button>
+      <p id="estado-copia" class="estado-copia" aria-live="polite"></p>
+      <div class="fila">
+        <a id="probar" class="boton claro" target="_blank" rel="noopener">Probar enlace</a>
+        <a id="ver-mapa" class="boton claro" target="_blank" rel="noopener">Ver en Maps</a>
+      </div>
+    </div>
+    <button id="otra" class="claro nueva" type="button">Nueva búsqueda</button>
+  </section>
+</main>
+
+<script>
+  // Clave de Google Cloud (Places API New), restringida al dominio de esta página.
+  var GOOGLE_API_KEY = "";
+
+  var REGION = "py";
+  var TIEMPO_MAXIMO_MS = 12000;
+
+  var $ = function (id) { return document.getElementById(id); };
+  var formulario = $("formulario"), campoNegocio = $("negocio"), campoZona = $("zona");
+  var botonBuscar = $("buscar"), aviso = $("aviso");
+  var seccionResultados = $("seccion-resultados"), listaResultados = $("resultados");
+  var seccionEnlace = $("seccion-enlace"), campoEnlace = $("enlace"), estadoCopia = $("estado-copia");
+
+  function mostrarAviso(titulo, detalle) {
+    aviso.innerHTML = "";
+    var t = document.createElement("strong");
+    t.textContent = titulo;
+    aviso.appendChild(t);
+    if (detalle) aviso.appendChild(document.createTextNode(detalle));
+    aviso.hidden = false;
+  }
+  function ocultarAviso() { aviso.hidden = true; }
+
+  function ocupado(si, texto) {
+    botonBuscar.disabled = si;
+    botonBuscar.innerHTML = si ? '<span class="cargando" aria-hidden="true"></span> ' + texto : "Buscar";
+  }
+
+  // Llamada a Google con tiempo máximo y errores traducidos.
+  function llamarGoogle(url, opciones) {
+    if (!GOOGLE_API_KEY) {
+      return Promise.reject({ tipo: "config" });
+    }
+    if (navigator.onLine === false) {
+      return Promise.reject({ tipo: "sin-conexion" });
+    }
+    var control = new AbortController();
+    var reloj = setTimeout(function () { control.abort(); }, TIEMPO_MAXIMO_MS);
+    opciones.signal = control.signal;
+    opciones.headers = Object.assign({ "X-Goog-Api-Key": GOOGLE_API_KEY }, opciones.headers);
+    return fetch(url, opciones)
+      .catch(function () { throw { tipo: "sin-conexion" }; })
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (datos) {
+          if (r.ok) return datos;
+          var e = datos.error || {};
+          throw { tipo: "google", codigo: r.status, estado: e.status, mensaje: e.message };
+        });
+      })
+      .finally(function () { clearTimeout(reloj); });
+  }
+
+  function explicarError(err) {
+    if (err.tipo === "config") {
+      mostrarAviso("Falta configurar la clave de Google.", " La página todavía no tiene su clave de Google Cloud.");
+    } else if (err.tipo === "sin-conexion") {
+      mostrarAviso("No hay conexión.", " Revisá tu internet y volvé a intentar.");
+    } else if (err.codigo === 429) {
+      mostrarAviso("Se alcanzó el límite de búsquedas de hoy.", " Mañana se renueva automáticamente.");
+    } else if (err.codigo === 403 || err.codigo === 401 || (err.codigo === 400 && /API key/i.test(err.mensaje || ""))) {
+      mostrarAviso("Google rechazó la búsqueda.", " La clave no es válida o no está habilitada para este sitio.");
+    } else if (err.codigo === 404) {
+      mostrarAviso("Ese negocio ya no figura en Google Maps.", " Probá buscarlo de nuevo, puede tener una ficha nueva.");
+    } else {
+      mostrarAviso("Google no respondió como esperábamos.", " Esperá unos segundos y volvé a intentar.");
+    }
+  }
+
+  function buscar(texto) {
+    var cuerpo = {
+      input: texto,
+      includedRegionCodes: [REGION],
+      regionCode: REGION,
+      languageCode: "es"
+    };
+    return llamarGoogle("https://places.googleapis.com/v1/places:autocomplete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Goog-FieldMask": "suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat"
+      },
+      body: JSON.stringify(cuerpo)
+    }).then(function (datos) {
+      return (datos.suggestions || [])
+        .map(function (s) { return s.placePrediction; })
+        .filter(function (p) { return p && p.placeId; })
+        .map(function (p) {
+          var f = p.structuredFormat || {};
+          return {
+            id: p.placeId,
+            nombre: (f.mainText && f.mainText.text) || (p.text && p.text.text) || "",
+            direccion: (f.secondaryText && f.secondaryText.text) || ""
+          };
+        });
+    });
+  }
+
+  // Confirma el Place ID con Google antes de armar el enlace (consulta solo de identificador, sin costo).
+  function confirmarId(id) {
+    return llamarGoogle("https://places.googleapis.com/v1/places/" + encodeURIComponent(id), {
+      method: "GET",
+      headers: { "X-Goog-FieldMask": "id,movedPlaceId" }
+    }).then(function (datos) {
+      return datos.movedPlaceId || datos.id || id;
+    });
+  }
+
+  function enlaceResena(id) {
+    return "https://search.google.com/local/writereview?placeid=" + encodeURIComponent(id);
+  }
+  function enlaceMapa(nombre, id) {
+    return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(nombre) + "&query_place_id=" + encodeURIComponent(id);
+  }
+
+  function mostrarResultados(lista) {
+    listaResultados.innerHTML = "";
+    lista.forEach(function (lugar) {
+      var li = document.createElement("li");
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "resultado";
+      var n = document.createElement("span");
+      n.className = "nombre";
+      n.textContent = lugar.nombre;
+      var d = document.createElement("span");
+      d.className = "direccion";
+      d.textContent = lugar.direccion || "Sin dirección publicada";
+      b.appendChild(n);
+      b.appendChild(d);
+      b.addEventListener("click", function () { elegir(lugar, b); });
+      li.appendChild(b);
+      listaResultados.appendChild(li);
+    });
+    seccionResultados.hidden = false;
+  }
+
+  function elegir(lugar, boton) {
+    ocultarAviso();
+    var botones = listaResultados.querySelectorAll("button");
+    botones.forEach(function (x) { x.disabled = true; });
+    boton.style.borderColor = "#000";
+    confirmarId(lugar.id).then(function (idFinal) {
+      var url = enlaceResena(idFinal);
+      $("sel-nombre").textContent = lugar.nombre;
+      $("sel-direccion").textContent = lugar.direccion;
+      campoEnlace.value = url;
+      $("probar").href = url;
+      $("ver-mapa").href = enlaceMapa(lugar.nombre, idFinal);
+      estadoCopia.textContent = "";
+      seccionResultados.hidden = true;
+      formulario.hidden = true;
+      seccionEnlace.hidden = false;
+      window.scrollTo(0, 0);
+      $("copiar").focus();
+    }).catch(function (err) {
+      explicarError(err);
+    }).finally(function () {
+      botones.forEach(function (x) { x.disabled = false; });
+      boton.style.borderColor = "";
+    });
+  }
+
+  formulario.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    var nombre = campoNegocio.value.trim();
+    var zona = campoZona.value.trim();
+    ocultarAviso();
+    seccionResultados.hidden = true;
+    if (nombre.length < 2) {
+      mostrarAviso("Escribí el nombre del negocio.", " Con al menos dos letras alcanza.");
+      campoNegocio.focus();
+      return;
+    }
+    campoNegocio.blur();
+    campoZona.blur();
+    ocupado(true, "Buscando…");
+    buscar(zona ? nombre + ", " + zona : nombre)
+      .then(function (lista) {
+        if (!lista.length) {
+          mostrarAviso("No encontramos negocios con ese nombre.", zona
+            ? " Probá cambiar la ciudad o zona, o escribir el nombre como figura en Google Maps."
+            : " Probá agregar la ciudad o zona, o escribir el nombre como figura en Google Maps.");
+          campoNegocio.focus();
+          return;
+        }
+        mostrarResultados(lista);
+      })
+      .catch(explicarError)
+      .finally(function () { ocupado(false); });
+  });
+
+  function copiarTexto(texto) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(texto).catch(function () { return copiarViejo(texto); });
+    }
+    return copiarViejo(texto);
+  }
+  function copiarViejo(texto) {
+    return new Promise(function (ok, mal) {
+      campoEnlace.focus();
+      campoEnlace.select();
+      campoEnlace.setSelectionRange(0, texto.length);
+      var hecho = false;
+      try { hecho = document.execCommand("copy"); } catch (e) { hecho = false; }
+      hecho ? ok() : mal();
+    });
+  }
+
+  $("copiar").addEventListener("click", function () {
+    var texto = campoEnlace.value;
+    copiarTexto(texto).then(function () {
+      estadoCopia.textContent = "Enlace copiado. Ya podés pegarlo en tu app de NFC.";
+      $("copiar").textContent = "Copiado ✓";
+      setTimeout(function () { $("copiar").textContent = "Copiar enlace"; }, 2500);
+    }).catch(function () {
+      campoEnlace.focus();
+      campoEnlace.select();
+      estadoCopia.textContent = "No se pudo copiar solo. El enlace quedó seleccionado: mantené el dedo sobre él y elegí Copiar.";
+    });
+  });
+
+  $("otra").addEventListener("click", function () {
+    seccionEnlace.hidden = true;
+    formulario.hidden = false;
+    ocultarAviso();
+    campoNegocio.value = "";
+    listaResultados.innerHTML = "";
+    window.scrollTo(0, 0);
+    campoNegocio.focus();
+  });
+
+  window.addEventListener("offline", function () { mostrarAviso("Sin conexión a internet.", " Vas a poder buscar cuando vuelva la señal."); });
+  window.addEventListener("online", ocultarAviso);
+  if (!GOOGLE_API_KEY) mostrarAviso("Falta configurar la clave de Google.", " La búsqueda se activa cuando se carga la clave.");
+</script>
+</body>
+</html>
